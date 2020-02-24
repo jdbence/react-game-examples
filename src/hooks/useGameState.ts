@@ -9,6 +9,7 @@ import {
   PlayerSelectIndex,
   allGameFlowDispatches
 } from "../models/Game";
+import { TEAM_NAMES } from "../contants/GameSettings";
 
 const EMPTY_CELL = -1;
 const MAX_TEAMS = 2;
@@ -114,7 +115,8 @@ function onPlayerConnect(
   if (state.teams.length < MAX_TEAMS) {
     state.teams.push({
       team: state.teams.length,
-      score: 0
+      score: 0,
+      name: TEAM_NAMES[state.teams.length]
     });
     // autostart the game when all teams joined
     if (state.teams.length === MAX_TEAMS) {

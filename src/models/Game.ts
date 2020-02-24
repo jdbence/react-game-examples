@@ -8,6 +8,7 @@ export enum GameStatus {
 export interface Team {
   team: number;
   score: number;
+  name: string;
 }
 
 export interface GameState<T> {

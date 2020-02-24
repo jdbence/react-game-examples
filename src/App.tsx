@@ -14,6 +14,7 @@ import { pointToIndex } from "./utils/GridUtil";
 import "./App.css";
 
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
+import { GameStatus } from "./models/Game";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -24,7 +25,8 @@ const useStyles = makeStyles((theme: Theme) =>
       height: "100%"
     },
     gridTeams: {
-      padding: 10
+      padding: 10,
+      minHeight: 52
     }
   })
 );
@@ -59,14 +61,18 @@ export default function App() {
                     style={{ color: ts.team === 0 ? red[500] : blue[500] }}
                   />
                 }
-                label={`Team ${ts.team} Score: ${ts.score}`}
+                label={`${ts.name} Score: ${ts.score}`}
               />
             </Grid>
           ))}
         </Grid>
         <Grid container direction="row" justify="center" alignItems="center">
           <Typography variant="h5" gutterBottom>
-            {state.gameStatus}
+            {state.gameStatus === GameStatus.PLAYING
+              ? `${state.teams[state.currentTeam].name}'s Turn`
+              : state.gameStatus === GameStatus.WIN
+              ? `${state.teams[state.currentTeam].name} Wins`
+              : state.gameStatus}
           </Typography>
         </Grid>
         <Grid

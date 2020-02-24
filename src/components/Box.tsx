@@ -7,6 +7,7 @@ interface BoxProps {
   height: number;
   fill: string;
   onClick?: (e: any) => void;
+  svgProps?: object;
 }
 
 export const Box: FunctionComponent<BoxProps> = ({
@@ -15,14 +16,22 @@ export const Box: FunctionComponent<BoxProps> = ({
   width,
   height,
   fill,
-  onClick
+  onClick,
+  svgProps
 }) => (
-  <rect
-    x={x}
-    y={y}
+  <svg
     width={width}
     height={height}
-    fill={fill}
-    onClick={onClick}
-  />
+    viewBox={`0 0 ${width} ${height}`}
+    {...(svgProps || {})}
+  >
+    <rect
+      x={x}
+      y={y}
+      width={width}
+      height={height}
+      fill={fill}
+      onClick={onClick}
+    />
+  </svg>
 );

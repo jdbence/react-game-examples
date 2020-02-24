@@ -2,6 +2,8 @@ import React, { FunctionComponent } from "react";
 import { motion } from "framer-motion";
 import { GRID_CELL_WIDTH } from "../contants/GameSettings";
 import { red, blue } from "@material-ui/core/colors";
+import RadioButtonUncheckedIcon from "@material-ui/icons/RadioButtonUnchecked";
+import CloseIcon from "@material-ui/icons/Close";
 
 interface GridBoxProps {
   x: number;
@@ -28,41 +30,27 @@ export const GridBox: FunctionComponent<GridBoxProps> = ({
       y: GRID_CELL_WIDTH * 0.25
     }
   };
-  const groupVariants = {
-    open: {
-      x: x * GRID_CELL_WIDTH,
-      y: y * GRID_CELL_WIDTH
-    },
-    closed: {
-      x: x * GRID_CELL_WIDTH,
-      y: y * GRID_CELL_WIDTH
-    }
-  };
   return (
-    <motion.g
+    <motion.svg
       width={GRID_CELL_WIDTH}
       height={GRID_CELL_WIDTH}
-      x={x * GRID_CELL_WIDTH}
-      y={y * GRID_CELL_WIDTH}
-      transition={{ duration: 0 }}
+      viewBox={`0 0 ${GRID_CELL_WIDTH} ${GRID_CELL_WIDTH}`}
+      style={{
+        position: "absolute",
+        left: x * GRID_CELL_WIDTH,
+        top: y * GRID_CELL_WIDTH
+      }}
+      transition={{ duration: 0.1 }}
       animate={team >= 0 ? "open" : "closed"}
-      variants={groupVariants}
+      variants={variants}
     >
-      <motion.rect
-        width={0}
-        height={0}
-        x={0}
-        y={0}
-        fill={team === -1 ? "transparent" : team === 0 ? red[500] : blue[500]}
-        transition={{ duration: 0.1 }}
-        animate={team >= 0 ? "open" : "closed"}
-        variants={variants}
-      />
+      {team === 1 && <RadioButtonUncheckedIcon style={{ color: blue[500] }} />}
+      {team === 0 && <CloseIcon style={{ color: red[500] }} />}
       <rect
         width={GRID_CELL_WIDTH}
         height={GRID_CELL_WIDTH}
         fill="transparent"
       />
-    </motion.g>
+    </motion.svg>
   );
 };

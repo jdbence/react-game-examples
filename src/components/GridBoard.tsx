@@ -11,19 +11,58 @@ interface GridBoardProps {
   onClick?: (e: any) => void;
 }
 
+const CheckerdBoard = ({
+  width,
+  height,
+  fill
+}: {
+  fill: string;
+  width: number;
+  height: number;
+}) => {
+  return (
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+      <pattern
+        id="pattern-checkers"
+        x="0"
+        y="0"
+        width="200"
+        height="200"
+        patternUnits="userSpaceOnUse"
+      >
+        <rect fill={fill} x="0" width="100" height="100" y="0" />
+        <rect fill={fill} x="100" width="100" height="100" y="100" />
+      </pattern>
+      <rect
+        x="0"
+        y="0"
+        width="100%"
+        height="100%"
+        fill="url(#pattern-checkers)"
+      />
+    </svg>
+  );
+};
+
 export const GridBoard: FunctionComponent<GridBoardProps> = ({
   width,
   height,
-  fill = "pink",
+  fill = "lightgrey",
   grid,
   onClick
 }) => (
-  <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height}>
-    <Box fill={fill} width={width} height={height} />
+  <div style={{ width: width, height: height, position: "relative" }}>
+    <CheckerdBoard fill={fill} width={width} height={height} />
     {grid.map((cell, i) => {
       const p = indexToPoint(i);
       return <GridBox key={i} x={p.x} y={p.y} team={cell} />;
     })}
-    <Box fill="transparent" width={width} height={height} onClick={onClick} />
-  </svg>
+    <Box
+      fill="transparent"
+      width={width}
+      height={height}
+      onClick={onClick}
+      svgProps={{ style: { position: "absolute", top: 0, left: 0 } }}
+    />
+  </div>
 );

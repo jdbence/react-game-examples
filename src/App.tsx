@@ -1,56 +1,64 @@
-import React from "react";
-import { BrowserRouter, Route, Switch } from "react-router-dom";
+import React, { useCallback } from "react";
+import { Redirect, Route, Switch, useHistory } from "react-router-dom";
 import { useTicTacToeGameState } from "./hooks/useTicTacToeGameState";
 import { CommandPanel } from "./components/CommandPanel";
 import { AppLayout } from "./components/AppLayout";
 import { TicTacToe } from "./components/games/TicTacToe";
+import AccountDialog from "./components/dialogs/AccountDialog";
+import LibraryDialog from "./components/dialogs/LibraryDialog";
+import useQuery from "./hooks/useQuery";
+
+const PROFILE = "profile";
+const LIBRARY = "library";
 
 export default function App() {
   const [ticTacToeState, ticTacToeDispatch] = useTicTacToeGameState();
+  const history = useHistory();
+  const query = useQuery();
+
+  const onCloseDialog = useCallback(() => {
+    if (query.get("dialog")) {
+      query.delete("dialog");
+      const q = query.toString();
+      history.replace(
+        `${history.location.pathname}${q.length > 0 ? `?${q}` : ""}`
+      );
+    }
+  }, [history, query]);
+
+  const dialog = query.get("dialog");
 
   return (
-    <BrowserRouter>
+    <AppLayout>
       <Switch>
+        <Redirect exact from="/play" to="/" />
         <Route
           exact
           path="/"
           children={
-            <AppLayout>
-              Landing Page <span role="img">🐻</span>
-            </AppLayout>
+            <div>
+              Landing Page{" "}
+              <span role="img" aria-label="bear">
+                🐻
+              </span>
+            </div>
           }
         />
         <Route
-          exact
-          path="/profile"
+          path="/play/:id"
           children={
-            <AppLayout>
-              Profile Page <span role="img">🐻</span>
-            </AppLayout>
-          }
-        />
-        <Route
-          exact
-          path="/library"
-          children={
-            <AppLayout>
-              Library Page <span role="img">🐻</span>
-            </AppLayout>
-          }
-        />
-        <Route
-          path="/library/tic-tac-toe"
-          children={
-            <AppLayout>
+            <>
               <CommandPanel
                 dispatch={ticTacToeDispatch}
                 state={ticTacToeState}
               />
               <TicTacToe dispatch={ticTacToeDispatch} state={ticTacToeState} />
-            </AppLayout>
+            </>
           }
         />
       </Switch>
-    </BrowserRouter>
+      <AccountDialog open={dialog === PROFILE} onClose={onCloseDialog} />
+      <LibraryDialog open={dialog === LIBRARY} onClose={onCloseDialog} />
+    </AppLayout>
   );
 }

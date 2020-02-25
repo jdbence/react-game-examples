@@ -1,5 +1,5 @@
-import React, { FunctionComponent } from "react";
-import { Link } from "react-router-dom";
+import React, { FunctionComponent, useCallback } from "react";
+import { useLocation, useHistory } from "react-router-dom";
 import { Theme, createStyles, makeStyles } from "@material-ui/core/styles";
 import Drawer from "@material-ui/core/Drawer";
 import CssBaseline from "@material-ui/core/CssBaseline";
@@ -43,6 +43,19 @@ interface AppLayoutProps {
 
 export const AppLayout: FunctionComponent<AppLayoutProps> = ({ children }) => {
   const classes = useStyles();
+  const loc = useLocation();
+  const history = useHistory();
+
+  // adds query string to current url
+  const onClickLink = useCallback(
+    (param: string) => {
+      const query = new URLSearchParams(loc.search);
+      query.set("dialog", param);
+      const q = query.toString();
+      history.replace(`${history.location.pathname}?${q}`);
+    },
+    [history, loc.search]
+  );
 
   return (
     <div className={classes.root}>
@@ -57,13 +70,13 @@ export const AppLayout: FunctionComponent<AppLayoutProps> = ({ children }) => {
         anchor="right"
       >
         <List>
-          <ListItem button component={Link} to={"/profile"}>
+          <ListItem button onClick={() => onClickLink("profile")}>
             <ListItemIcon>
               <PersonOutlineOutlinedIcon />
             </ListItemIcon>
             <ListItemText primary={"Account"} />
           </ListItem>
-          <ListItem button component={Link} to={"/library"}>
+          <ListItem button onClick={() => onClickLink("library")}>
             <ListItemIcon>
               <FolderOutlinedIcon />
             </ListItemIcon>

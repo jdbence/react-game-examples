@@ -1,4 +1,5 @@
 import React, { FunctionComponent } from "react";
+import { Link } from "react-router-dom";
 import { Theme, createStyles, makeStyles } from "@material-ui/core/styles";
 import Drawer from "@material-ui/core/Drawer";
 import CssBaseline from "@material-ui/core/CssBaseline";
@@ -56,13 +57,13 @@ export const AppLayout: FunctionComponent<AppLayoutProps> = ({ children }) => {
         anchor="right"
       >
         <List>
-          <ListItem button>
+          <ListItem button component={Link} to={"/profile"}>
             <ListItemIcon>
               <PersonOutlineOutlinedIcon />
             </ListItemIcon>
             <ListItemText primary={"Account"} />
           </ListItem>
-          <ListItem button>
+          <ListItem button component={Link} to={"/library"}>
             <ListItemIcon>
               <FolderOutlinedIcon />
             </ListItemIcon>

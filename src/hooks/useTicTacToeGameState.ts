@@ -201,7 +201,7 @@ function reducer(
   }
 }
 
-export function useGameState(): [
+export function useTicTacToeGameState(): [
   GameState<allGameFlowDispatches>,
   Dispatch<GameAction<allGameFlowDispatches>>
 ] {

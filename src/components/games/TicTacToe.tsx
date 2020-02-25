@@ -7,7 +7,7 @@ import { red, blue } from "@material-ui/core/colors";
 import { GridBoard } from "../GridBoard";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import { GameStatus } from "../../models/Game";
-import { playerSelectIndex } from "../../hooks/useGameState";
+import { playerSelectIndex } from "../../hooks/useTicTacToeGameState";
 import {
   allGameFlowDispatches,
   GameState,
@@ -31,12 +31,12 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-interface TicTacToe {
+interface TicTacToeProps {
   dispatch: Dispatch<GameAction<allGameFlowDispatches>>;
   state: GameState<allGameFlowDispatches>;
 }
 
-export const TicTacToe: FunctionComponent<TicTacToe> = ({
+export const TicTacToe: FunctionComponent<TicTacToeProps> = ({
   dispatch,
   state
 }) => {

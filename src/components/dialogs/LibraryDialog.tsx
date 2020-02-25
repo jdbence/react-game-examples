@@ -71,7 +71,6 @@ const LibraryDialog: FunctionComponent<LibraryDialogProps> = ({
         direction="row"
         justify="center"
         alignItems="center"
-        spacing={2}
       >
         <GameCard title="tic-tac-toe" />
         <GameCard title="checkers" />

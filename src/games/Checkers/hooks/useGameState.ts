@@ -8,8 +8,8 @@ import {
   PlayerConnect,
   PlayerSelectIndex,
   allGameFlowDispatches
-} from "../models/Game";
-import { TEAM_NAMES } from "../contants/GameSettings";
+} from "models/Game";
+import { TEAM_NAMES } from "games/Checkers/constants/GameSettings";
 
 const EMPTY_CELL = -1;
 const MAX_TEAMS = 2;
@@ -18,17 +18,7 @@ const resetState = {
   currentTeam: 0,
   gameActions: [],
   gameStatus: GameStatus.PLAYING,
-  grid: [
-    EMPTY_CELL,
-    EMPTY_CELL,
-    EMPTY_CELL,
-    EMPTY_CELL,
-    EMPTY_CELL,
-    EMPTY_CELL,
-    EMPTY_CELL,
-    EMPTY_CELL,
-    EMPTY_CELL
-  ]
+  grid: new Array(64).fill(EMPTY_CELL) // 64 squares on a checkerboard
 };
 
 const initialState = {
@@ -201,7 +191,7 @@ function reducer(
   }
 }
 
-export function useTicTacToeGameState(): [
+export function useGameState(): [
   GameState<allGameFlowDispatches>,
   Dispatch<GameAction<allGameFlowDispatches>>
 ] {

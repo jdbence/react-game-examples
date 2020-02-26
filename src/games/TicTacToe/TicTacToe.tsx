@@ -4,17 +4,21 @@ import Grid from "@material-ui/core/Grid";
 import TagFacesIcon from "@material-ui/icons/TagFaces";
 import Typography from "@material-ui/core/Typography";
 import { red, blue } from "@material-ui/core/colors";
-import { GridBoard } from "../GridBoard";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import { GameStatus } from "../../models/Game";
-import { playerSelectIndex } from "../../hooks/useTicTacToeGameState";
+import { GridBoard } from "components/GridBoard";
+import { pointToIndex } from "utils/GridUtil";
 import {
   allGameFlowDispatches,
+  GameAction,
   GameState,
-  GameAction
-} from "../../models/Game";
-import { GRID_CELL_WIDTH, GRID_WIDTH } from "../../contants/GameSettings";
-import { pointToIndex } from "../../utils/GridUtil";
+  GameStatus
+} from "models/Game";
+import { playerSelectIndex } from "games/TicTacToe/hooks/useGameState";
+import {
+  GRID_CELL_WIDTH,
+  GRID_WIDTH,
+  GRID_COLUMNS
+} from "games/TicTacToe/constants/GameSettings";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -46,7 +50,7 @@ export const TicTacToe: FunctionComponent<TicTacToeProps> = ({
     e.persist();
     const x = Math.floor(e.nativeEvent.offsetX / GRID_CELL_WIDTH);
     const y = Math.floor(e.nativeEvent.offsetY / GRID_CELL_WIDTH);
-    dispatch(playerSelectIndex(pointToIndex({ x, y })));
+    dispatch(playerSelectIndex(pointToIndex({ x, y }, GRID_COLUMNS)));
   };
 
   return (
@@ -73,8 +77,10 @@ export const TicTacToe: FunctionComponent<TicTacToeProps> = ({
       </Grid>
       <Grid container direction="row" justify="center" alignItems="center">
         <Typography variant="h5" gutterBottom>
-          {state.gameStatus === GameStatus.PLAYING
+          {state.gameStatus === GameStatus.PLAYING && state.teams.length > 0
             ? `${state.teams[state.currentTeam].name}'s Turn`
+            : state.gameStatus === GameStatus.PLAYING
+            ? "Add players"
             : state.gameStatus === GameStatus.WIN
             ? `${state.teams[state.currentTeam].name} Wins`
             : state.gameStatus}
@@ -89,6 +95,8 @@ export const TicTacToe: FunctionComponent<TicTacToeProps> = ({
       >
         <GridBoard
           grid={state.grid}
+          gridCellWidth={GRID_CELL_WIDTH}
+          gridColumns={GRID_COLUMNS}
           width={GRID_WIDTH}
           height={GRID_WIDTH}
           onClick={handleBoxClick}

@@ -27,6 +27,7 @@ const useStyles = makeStyles((theme: Theme) =>
     card: {
       width: 275,
       position: "absolute",
+      zIndex: 1000,
       right: 10,
       top: 10
     }

@@ -1,6 +1,5 @@
 import React, { FunctionComponent } from "react";
 import { motion } from "framer-motion";
-import { GRID_CELL_WIDTH } from "../contants/GameSettings";
 import { red, blue } from "@material-ui/core/colors";
 import RadioButtonUncheckedIcon from "@material-ui/icons/RadioButtonUnchecked";
 import CloseIcon from "@material-ui/icons/Close";
@@ -9,36 +8,38 @@ interface GridBoxProps {
   x: number;
   y: number;
   team: number;
+  gridCellWidth: number;
 }
 
 export const GridBox: FunctionComponent<GridBoxProps> = ({
   x = 0,
   y = 0,
-  team = 0
+  team = 0,
+  gridCellWidth
 }) => {
   const variants = {
     open: {
-      width: GRID_CELL_WIDTH,
-      height: GRID_CELL_WIDTH,
+      width: gridCellWidth,
+      height: gridCellWidth,
       x: 0,
       y: 0
     },
     closed: {
-      width: GRID_CELL_WIDTH * 0.5,
-      height: GRID_CELL_WIDTH * 0.5,
-      x: GRID_CELL_WIDTH * 0.25,
-      y: GRID_CELL_WIDTH * 0.25
+      width: gridCellWidth * 0.5,
+      height: gridCellWidth * 0.5,
+      x: gridCellWidth * 0.25,
+      y: gridCellWidth * 0.25
     }
   };
   return (
     <motion.svg
-      width={GRID_CELL_WIDTH}
-      height={GRID_CELL_WIDTH}
-      viewBox={`0 0 ${GRID_CELL_WIDTH} ${GRID_CELL_WIDTH}`}
+      width={gridCellWidth}
+      height={gridCellWidth}
+      viewBox={`0 0 ${gridCellWidth} ${gridCellWidth}`}
       style={{
         position: "absolute",
-        left: x * GRID_CELL_WIDTH,
-        top: y * GRID_CELL_WIDTH
+        left: x * gridCellWidth,
+        top: y * gridCellWidth
       }}
       transition={{ duration: 0.1 }}
       animate={team >= 0 ? "open" : "closed"}
@@ -46,11 +47,7 @@ export const GridBox: FunctionComponent<GridBoxProps> = ({
     >
       {team === 1 && <RadioButtonUncheckedIcon style={{ color: blue[500] }} />}
       {team === 0 && <CloseIcon style={{ color: red[500] }} />}
-      <rect
-        width={GRID_CELL_WIDTH}
-        height={GRID_CELL_WIDTH}
-        fill="transparent"
-      />
+      <rect width={gridCellWidth} height={gridCellWidth} fill="transparent" />
     </motion.svg>
   );
 };

@@ -1,17 +1,15 @@
-import { GRID_COLUMNS } from "../contants/GameSettings";
-
 interface Point {
   x: number;
   y: number;
 }
 
-export const indexToPoint = (index: number): Point => {
+export const indexToPoint = (index: number, gridColumns: number): Point => {
   return {
-    y: Math.floor(index / GRID_COLUMNS),
-    x: index % GRID_COLUMNS
+    y: Math.floor(index / gridColumns),
+    x: index % gridColumns
   };
 };
 
-export const pointToIndex = (p: Point): number => {
-  return p.y * GRID_COLUMNS + p.x;
+export const pointToIndex = (p: Point, gridColumns: number): number => {
+  return p.y * gridColumns + p.x;
 };

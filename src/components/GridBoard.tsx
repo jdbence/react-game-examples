@@ -1,13 +1,15 @@
 import React, { FunctionComponent } from "react";
-import { GridBox } from "./GridBox";
-import { Box } from "./Box";
-import { indexToPoint } from "../utils/GridUtil";
+import { GridBox } from "components/GridBox";
+import { Box } from "components/Box";
+import { indexToPoint } from "utils/GridUtil";
 
 interface GridBoardProps {
   width: number;
   height: number;
   fill?: string;
   grid: Array<number>;
+  gridColumns: number;
+  gridCellWidth: number;
   onClick?: (e: any) => void;
 }
 
@@ -49,13 +51,23 @@ export const GridBoard: FunctionComponent<GridBoardProps> = ({
   height,
   fill = "lightgrey",
   grid,
+  gridCellWidth,
+  gridColumns,
   onClick
 }) => (
   <div style={{ width: width, height: height, position: "relative" }}>
     <CheckerdBoard fill={fill} width={width} height={height} />
     {grid.map((cell, i) => {
-      const p = indexToPoint(i);
-      return <GridBox key={i} x={p.x} y={p.y} team={cell} />;
+      const p = indexToPoint(i, gridColumns);
+      return (
+        <GridBox
+          key={i}
+          x={p.x}
+          y={p.y}
+          team={cell}
+          gridCellWidth={gridCellWidth}
+        />
+      );
     })}
     <Box
       fill="transparent"

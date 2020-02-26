@@ -41,7 +41,7 @@ export default function App() {
             </div>
           }
         />
-        <Route path="/play/:id" children={<GamePicker />} />
+        <Route path="/play/:id" component={GamePicker} />
       </Switch>
       <AccountDialog open={dialog === PROFILE} onClose={onCloseDialog} />
       <LibraryDialog open={dialog === LIBRARY} onClose={onCloseDialog} />

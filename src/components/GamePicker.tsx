@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useCallback } from "react";
+import React, { FunctionComponent, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { AppLayout } from "components/AppLayout";
 import { CommandPanel } from "components/CommandPanel";
@@ -15,7 +15,7 @@ export const GamePicker: FunctionComponent<GamePickerProps> = () => {
   const [checkersState, checkersDispatch] = useCheckersGameState();
   const [ticTacToeState, ticTacToeDispatch] = useTicTacToeGameState();
 
-  const renderGame = useCallback(() => {
+  const Game = useMemo(() => {
     if (id === TIC_TAC_TOE) {
       return (
         <>
@@ -34,5 +34,5 @@ export const GamePicker: FunctionComponent<GamePickerProps> = () => {
     return <></>;
   }, [ticTacToeState, ticTacToeDispatch, checkersState, checkersDispatch, id]);
 
-  return <AppLayout>{renderGame()}</AppLayout>;
+  return <AppLayout>{Game}</AppLayout>;
 };

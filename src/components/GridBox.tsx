@@ -1,21 +1,23 @@
-import React, { FunctionComponent } from "react";
+import React, { FunctionComponent, useMemo } from "react";
 import { motion } from "framer-motion";
-import { red, blue } from "@material-ui/core/colors";
-import RadioButtonUncheckedIcon from "@material-ui/icons/RadioButtonUnchecked";
-import CloseIcon from "@material-ui/icons/Close";
+// import RadioButtonUncheckedIcon from "@material-ui/icons/RadioButtonUnchecked";
+// import CloseIcon from "@material-ui/icons/Close";
+import { GridBoxIcons } from "models/Game";
 
 interface GridBoxProps {
   x: number;
   y: number;
   team: number;
   gridCellWidth: number;
+  gridBoxIcons: GridBoxIcons;
 }
 
 export const GridBox: FunctionComponent<GridBoxProps> = ({
   x = 0,
   y = 0,
   team = 0,
-  gridCellWidth
+  gridCellWidth,
+  gridBoxIcons
 }) => {
   const variants = {
     open: {
@@ -31,6 +33,7 @@ export const GridBox: FunctionComponent<GridBoxProps> = ({
       y: gridCellWidth * 0.25
     }
   };
+  const Icon = useMemo(() => gridBoxIcons[team]?.icon, [gridBoxIcons, team]);
   return (
     <motion.svg
       width={gridCellWidth}
@@ -45,8 +48,7 @@ export const GridBox: FunctionComponent<GridBoxProps> = ({
       animate={team >= 0 ? "open" : "closed"}
       variants={variants}
     >
-      {team === 1 && <RadioButtonUncheckedIcon style={{ color: blue[500] }} />}
-      {team === 0 && <CloseIcon style={{ color: red[500] }} />}
+      {Icon && <Icon style={{ color: gridBoxIcons[team].color }} />}
       <rect width={gridCellWidth} height={gridCellWidth} fill="transparent" />
     </motion.svg>
   );

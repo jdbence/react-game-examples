@@ -2,6 +2,7 @@ import React, { FunctionComponent } from "react";
 import { GridBox } from "components/GridBox";
 import { Box } from "components/Box";
 import { indexToPoint } from "utils/GridUtil";
+import { GridBoxIcons } from "models/Game";
 
 interface GridBoardProps {
   width: number;
@@ -10,6 +11,7 @@ interface GridBoardProps {
   grid: Array<number>;
   gridColumns: number;
   gridCellWidth: number;
+  gridBoxIcons: GridBoxIcons;
   onClick?: (e: any) => void;
 }
 
@@ -53,6 +55,7 @@ export const GridBoard: FunctionComponent<GridBoardProps> = ({
   grid,
   gridCellWidth,
   gridColumns,
+  gridBoxIcons,
   onClick
 }) => (
   <div style={{ width: width, height: height, position: "relative" }}>
@@ -66,6 +69,7 @@ export const GridBoard: FunctionComponent<GridBoardProps> = ({
           y={p.y}
           team={cell}
           gridCellWidth={gridCellWidth}
+          gridBoxIcons={gridBoxIcons}
         />
       );
     })}

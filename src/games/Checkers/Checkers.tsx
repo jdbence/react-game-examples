@@ -6,6 +6,7 @@ import Typography from "@material-ui/core/Typography";
 import { red, blue } from "@material-ui/core/colors";
 import { GridBoard } from "components/GridBoard";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
+import RadioButtonUncheckedIcon from "@material-ui/icons/RadioButtonUnchecked";
 import {
   GameStatus,
   allGameFlowDispatches,
@@ -50,7 +51,18 @@ export const Checkers: FunctionComponent<CheckersProps> = ({
     e.persist();
     const x = Math.floor(e.nativeEvent.offsetX / GRID_CELL_WIDTH);
     const y = Math.floor(e.nativeEvent.offsetY / GRID_CELL_WIDTH);
-    dispatch(playerSelectIndex(pointToIndex({ x, y }, GRID_CELL_WIDTH)));
+    dispatch(playerSelectIndex(pointToIndex({ x, y }, GRID_COLUMNS)));
+  };
+
+  const gridBoxIcons = {
+    0: {
+      icon: RadioButtonUncheckedIcon,
+      color: red[500]
+    },
+    1: {
+      icon: RadioButtonUncheckedIcon,
+      color: blue[500]
+    }
   };
 
   return (
@@ -98,6 +110,7 @@ export const Checkers: FunctionComponent<CheckersProps> = ({
           width={GRID_WIDTH}
           height={GRID_WIDTH}
           onClick={handleBoxClick}
+          gridBoxIcons={gridBoxIcons}
         />
       </Grid>
     </Grid>

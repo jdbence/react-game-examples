@@ -1,3 +1,5 @@
+import { SvgIconProps } from "@material-ui/core";
+
 export enum GameStatus {
   WIN = "WIN",
   TIE = "TIE",
@@ -49,3 +51,10 @@ export interface GameWin {
 }
 
 export type allGameFlowDispatches = PlayerSelectIndex | PlayerConnect | GameWin;
+
+export type GridBoxIcons = {
+  [team: number]: {
+    icon: (props: SvgIconProps) => JSX.Element;
+    color: string;
+  };
+};

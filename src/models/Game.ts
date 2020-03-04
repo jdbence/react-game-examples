@@ -19,6 +19,8 @@ export interface GameState<T> {
   gameActions: Array<GameAction<T>>;
   gameStatus: GameStatus;
   grid: Array<number>;
+  selectedCheckerIndex?: number;
+  possibleMoves?: Array<number>;
 }
 
 export interface GameAction<T> {

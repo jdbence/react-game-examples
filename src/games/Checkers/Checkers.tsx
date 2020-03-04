@@ -47,6 +47,11 @@ export const Checkers: FunctionComponent<CheckersProps> = ({
 }) => {
   const classes = useStyles();
 
+  const highlightedCells = [
+    ...(state.possibleMoves || []),
+    state.selectedCheckerIndex || -1
+  ];
+
   const handleBoxClick = (e: React.MouseEvent) => {
     e.persist();
     const x = Math.floor(e.nativeEvent.offsetX / GRID_CELL_WIDTH);
@@ -107,6 +112,7 @@ export const Checkers: FunctionComponent<CheckersProps> = ({
           grid={state.grid}
           gridCellWidth={GRID_CELL_WIDTH}
           gridColumns={GRID_COLUMNS}
+          highlightedCells={highlightedCells}
           width={GRID_WIDTH}
           height={GRID_WIDTH}
           onClick={handleBoxClick}

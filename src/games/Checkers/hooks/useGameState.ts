@@ -14,7 +14,7 @@ import {
   GRID_COLUMNS,
   GRID_ROWS
 } from "games/Checkers/constants/GameSettings";
-import { indexToPoint, midPoint, pointToIndex } from "utils/GridUtil";
+import { indexToPoint, midPoint, pointToIndex, Point } from "utils/GridUtil";
 
 const EMPTY_CELL = -1;
 const TEAM_0 = 0;
@@ -63,7 +63,9 @@ const resetState = {
   currentTeam: 0,
   gameActions: [],
   gameStatus: GameStatus.PLAYING,
-  grid: genStartingGrid()
+  grid: genStartingGrid(),
+  possibleMoves: [],
+  selectedCheckerIndex: -1
 };
 
 const initialState = {
@@ -138,6 +140,42 @@ const isSquareReachableViaJump = (
   return { activeCheckerIndex, jumpedCheckerIndex };
 };
 
+const isYCoordinateOutOfBounds = (yCoordinate: number, team: number) =>
+  team === TEAM_0 ? yCoordinate >= GRID_ROWS : yCoordinate < 0;
+
+const getMovesForIndex = (grid: Array<number>, index: number, team: number) => {
+  const p0 = indexToPoint(index, GRID_COLUMNS);
+  const xOffset = 1;
+  const yOffset = team === TEAM_1 ? -1 : 1;
+  const leftMove: Point = { x: p0.x - xOffset, y: p0.y + yOffset };
+  const leftMoveIndex = pointToIndex(leftMove, GRID_COLUMNS);
+  const rightMove: Point = { x: p0.x + xOffset, y: p0.y + yOffset };
+  console.log({ leftMove, rightMove });
+  const rightMoveIndex = pointToIndex(rightMove, GRID_COLUMNS);
+  const moves: Array<number> = [];
+  if (
+    leftMove.x >= 0 &&
+    !isYCoordinateOutOfBounds(leftMove.y, team) &&
+    grid[leftMoveIndex] === EMPTY_CELL
+  ) {
+    moves.push(pointToIndex(leftMove, GRID_COLUMNS));
+  }
+  console.log(
+    "!@#$R: ",
+    rightMove.x < GRID_COLUMNS,
+    !isYCoordinateOutOfBounds(rightMove.y, team),
+    grid[rightMoveIndex] === EMPTY_CELL
+  );
+  if (
+    rightMove.x < GRID_COLUMNS &&
+    !isYCoordinateOutOfBounds(rightMove.y, team) &&
+    grid[rightMoveIndex] === EMPTY_CELL
+  ) {
+    moves.push(rightMoveIndex);
+  }
+  return moves;
+};
+
 function onPlayerMessage(
   state: GameState<allGameFlowDispatches>,
   action: GameAction<PlayerSelectIndex>,
@@ -145,6 +183,22 @@ function onPlayerMessage(
 ): GameState<allGameFlowDispatches> {
   const newGrid = [...state.grid];
   const payload = action && action.payload;
+
+  // Player clicks their own checker
+  if (
+    payload &&
+    state.gameStatus === GameStatus.PLAYING &&
+    newGrid[payload.index] === state.currentTeam
+  ) {
+    state.selectedCheckerIndex = payload.index;
+    state.possibleMoves = getMovesForIndex(
+      newGrid,
+      payload.index,
+      state.currentTeam
+    );
+    console.log("state.selectedCheckerIndex:: ", state.selectedCheckerIndex);
+    console.log("state.possibleMoves:: ", state.possibleMoves);
+  }
 
   if (
     payload &&
@@ -224,6 +278,13 @@ function onPlayerMessage(
   }
   return state;
 }
+
+// function onCheckerSelect (
+//   state: GameState<allGameFlowDispatches>,
+//   action: GameAction<PlayerSelectIndex>,
+//   dispatch: Dispatch<GameAction<allGameFlowDispatches>
+// ) {
+// }
 
 function onPlayerConnect(
   state: GameState<allGameFlowDispatches>,

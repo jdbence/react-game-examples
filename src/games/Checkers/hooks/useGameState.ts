@@ -20,6 +20,7 @@ const EMPTY_CELL = -1;
 const TEAM_0 = 0;
 const TEAM_1 = 1;
 const MAX_TEAMS = 2;
+const OFFSET = 1;
 
 /**
  * @param grid Grid to add to
@@ -85,116 +86,78 @@ const isGameWon = (grid: Array<number>, team: number): boolean => {
   return g.findIndex(cell => cell === otherTeam) === -1;
 };
 
-/**
- * Determine whether a player has a checker than can move to a certain square
- * @param grid Game board state
- * @param index Index of the desired move
- * @param team Current team
- */
-const getCheckerToReachCell = (
-  grid: Array<number>,
-  index: number,
-  team: number
-): number => {
-  const g = grid;
-  const p1 = indexToPoint(index, GRID_COLUMNS);
-  return g.findIndex((cell, i) => {
-    if (cell !== team) {
-      return false;
-    }
-    const p2 = indexToPoint(i, GRID_COLUMNS);
-    const xOffset = Math.abs(p2.x - p1.x);
-    const yOffset = team === TEAM_1 ? p2.y - p1.y : p1.y - p2.y;
-    return xOffset === 1 && yOffset === 1;
-  });
-};
-
-interface Move {
-  activeCheckerIndex: number;
-  jumpedCheckerIndex: number;
-}
-const isSquareReachableViaJump = (
-  grid: Array<number>,
-  index: number,
-  team: number
-): Move => {
-  const g = grid;
-  const p1 = indexToPoint(index, GRID_COLUMNS);
-  const activeCheckerIndex = g.findIndex((cell, i) => {
-    if (cell !== team) {
-      return false;
-    }
-    const p2 = indexToPoint(i, GRID_COLUMNS);
-    const xOffset = Math.abs(p2.x - p1.x);
-    const yOffset = team === TEAM_1 ? p2.y - p1.y : p1.y - p2.y;
-    return xOffset === 2 && yOffset === 2;
-  });
-  const midPointIndex =
-    pointToIndex(
-      midPoint(p1, indexToPoint(activeCheckerIndex, GRID_COLUMNS)),
-      GRID_COLUMNS
-    ) || -1;
-  const otherTeam: number = team === TEAM_0 ? TEAM_1 : TEAM_0;
-  const jumpedCheckerIndex =
-    g[midPointIndex] === otherTeam ? midPointIndex : -1;
-  return { activeCheckerIndex, jumpedCheckerIndex };
+const isMoveAJump = (ia: number, ib: number) => {
+  const pa = indexToPoint(ia, GRID_COLUMNS);
+  const pb = indexToPoint(ib, GRID_COLUMNS);
+  const pz = { x: (pa.x + pb.x) / 2, y: (pa.y + pb.y) / 2 };
+  return {
+    isJump: Math.abs(pa.x - pb.x) === OFFSET * 2,
+    jumpIndex: pointToIndex(pz, GRID_COLUMNS)
+  };
 };
 
 const isYCoordinateOutOfBounds = (yCoordinate: number, team: number) =>
   team === TEAM_0 ? yCoordinate >= GRID_ROWS : yCoordinate < 0;
 
 const getMovesForIndex = (grid: Array<number>, index: number, team: number) => {
-  const p0 = indexToPoint(index, GRID_COLUMNS);
-  const xOffset = 1;
-  const yOffset = team === TEAM_1 ? -1 : 1;
-
-  const leftMove: Point = { x: p0.x - xOffset, y: p0.y + yOffset };
-  const leftMoveIndex = pointToIndex(leftMove, GRID_COLUMNS);
-  const rightMove: Point = { x: p0.x + xOffset, y: p0.y + yOffset };
-  console.log({ leftMove, rightMove });
-  const rightMoveIndex = pointToIndex(rightMove, GRID_COLUMNS);
-
   const moves: Array<number> = [];
 
-  if (
-    leftMove.x >= 0 &&
-    !isYCoordinateOutOfBounds(leftMove.y, team) &&
-    grid[leftMoveIndex] === EMPTY_CELL
-  ) {
-    moves.push(leftMoveIndex);
-  } else {
-    const leftJumpMove: Point = {
-      x: leftMove.x - xOffset,
-      y: leftMove.y + yOffset
-    };
-    const leftJumpMoveIndex = pointToIndex(leftJumpMove, GRID_COLUMNS);
-    if (
-      leftJumpMove.x >= 0 &&
-      !isYCoordinateOutOfBounds(leftJumpMove.y, team) &&
-      grid[leftJumpMoveIndex] === EMPTY_CELL
-    ) {
-      moves.push(leftJumpMoveIndex);
-    }
-  }
+  if (index >= 0) {
+    const p0 = indexToPoint(index, GRID_COLUMNS);
+    const xOffset = 1;
+    const yOffset = team === TEAM_1 ? -1 : 1;
 
-  if (
-    rightMove.x < GRID_COLUMNS &&
-    !isYCoordinateOutOfBounds(rightMove.y, team) &&
-    grid[rightMoveIndex] === EMPTY_CELL
-  ) {
-    moves.push(rightMoveIndex);
-  } else {
-    const rightJumpMove: Point = {
-      x: rightMove.x + xOffset,
-      y: rightMove.y + yOffset
-    };
-    const rightJumpMoveIndex = pointToIndex(rightJumpMove, GRID_COLUMNS);
+    const leftMove: Point = { x: p0.x - xOffset, y: p0.y + yOffset };
+    const leftMoveIndex = pointToIndex(leftMove, GRID_COLUMNS);
+    const rightMove: Point = { x: p0.x + xOffset, y: p0.y + yOffset };
+    const rightMoveIndex = pointToIndex(rightMove, GRID_COLUMNS);
+
     if (
-      rightJumpMove.x < GRID_COLUMNS &&
-      !isYCoordinateOutOfBounds(rightJumpMove.y, team) &&
-      grid[rightJumpMoveIndex] === EMPTY_CELL
+      leftMove.x >= 0 &&
+      !isYCoordinateOutOfBounds(leftMove.y, team) &&
+      grid[leftMoveIndex] === EMPTY_CELL
     ) {
-      moves.push(rightJumpMoveIndex);
+      moves.push(leftMoveIndex);
+    } else if (
+      grid[leftMoveIndex] !== EMPTY_CELL &&
+      grid[leftMoveIndex] !== team
+    ) {
+      const leftJumpMove: Point = {
+        x: leftMove.x - xOffset,
+        y: leftMove.y + yOffset
+      };
+      const leftJumpMoveIndex = pointToIndex(leftJumpMove, GRID_COLUMNS);
+      if (
+        leftJumpMove.x >= 0 &&
+        !isYCoordinateOutOfBounds(leftJumpMove.y, team) &&
+        grid[leftJumpMoveIndex] === EMPTY_CELL
+      ) {
+        moves.push(leftJumpMoveIndex);
+      }
+    }
+
+    if (
+      rightMove.x < GRID_COLUMNS &&
+      !isYCoordinateOutOfBounds(rightMove.y, team) &&
+      grid[rightMoveIndex] === EMPTY_CELL
+    ) {
+      moves.push(rightMoveIndex);
+    } else if (
+      grid[rightMoveIndex] !== EMPTY_CELL &&
+      grid[rightMoveIndex] !== team
+    ) {
+      const rightJumpMove: Point = {
+        x: rightMove.x + xOffset,
+        y: rightMove.y + yOffset
+      };
+      const rightJumpMoveIndex = pointToIndex(rightJumpMove, GRID_COLUMNS);
+      if (
+        rightJumpMove.x < GRID_COLUMNS &&
+        !isYCoordinateOutOfBounds(rightJumpMove.y, team) &&
+        grid[rightJumpMoveIndex] === EMPTY_CELL
+      ) {
+        moves.push(rightJumpMoveIndex);
+      }
     }
   }
 
@@ -210,7 +173,12 @@ function onPlayerMessage(
   const payload = action && action.payload;
 
   if (payload) {
-    const m = getMovesForIndex(newGrid, payload.index, state.currentTeam);
+    const moves = getMovesForIndex(
+      newGrid,
+      state.selectedCheckerIndex || -1,
+      state.currentTeam
+    );
+    const isCellInMoves = moves.findIndex(m => m === payload.index) !== -1;
 
     // Player clicks their own checker
     if (
@@ -218,9 +186,14 @@ function onPlayerMessage(
       newGrid[payload.index] === state.currentTeam
     ) {
       // Highlight selected checker if that checker has moves available
-      if (m.length > 0) {
+      const clickedCheckerMoves = getMovesForIndex(
+        newGrid,
+        payload.index,
+        state.currentTeam
+      );
+      if (clickedCheckerMoves.length > 0) {
         state.selectedCheckerIndex = payload.index;
-        state.possibleMoves = m;
+        state.possibleMoves = clickedCheckerMoves;
       }
       // Else, clear checker/move previews
       else {
@@ -231,94 +204,46 @@ function onPlayerMessage(
 
     if (
       state.gameStatus === GameStatus.PLAYING &&
-      newGrid[payload.index] === EMPTY_CELL
+      state.selectedCheckerIndex &&
+      isCellInMoves
     ) {
-      // Cell can be reached without jumping
-      const activeCheckerIndex = getCheckerToReachCell(
-        newGrid,
-        payload.index,
-        state.currentTeam
+      const { isJump, jumpIndex } = isMoveAJump(
+        state.selectedCheckerIndex,
+        payload.index
       );
-      const isCellInPossibleMoves =
-        payload.index &&
-        state.possibleMoves?.findIndex(pm => pm === payload.index) !== -1;
-      if (isCellInPossibleMoves) {
-        newGrid[activeCheckerIndex] = EMPTY_CELL;
-        newGrid[payload.index] = state.currentTeam;
-        state.grid = newGrid;
-        state.selectedCheckerIndex = -1;
-        state.possibleMoves = [];
+      newGrid[state.selectedCheckerIndex] = EMPTY_CELL;
+      newGrid[payload.index] = state.currentTeam;
+      if (isJump) {
+        newGrid[jumpIndex] = EMPTY_CELL;
+      }
+      state.grid = newGrid;
+      state.selectedCheckerIndex = -1;
+      state.possibleMoves = [];
 
-        // did player win
-        if (isGameWon(state.grid, state.currentTeam)) {
+      // Did player win
+      if (isGameWon(state.grid, state.currentTeam)) {
+        dispatch({
+          type: GameFlowAction.GAME_WIN,
+          payload: {
+            index: state.currentTeam
+          }
+        });
+        setTimeout(() => {
           dispatch({
-            type: GameFlowAction.GAME_WIN,
-            payload: {
-              index: state.currentTeam
-            }
+            type: GameFlowAction.GAME_RESET
           });
-          setTimeout(() => {
-            dispatch({
-              type: GameFlowAction.GAME_RESET
-            });
-          }, 2000);
-        }
+        }, 2000);
+      }
 
-        // next teams turn
-        else {
-          state.currentTeam = state.currentTeam === 0 ? 1 : 0;
-        }
-      } else {
-        const {
-          activeCheckerIndex,
-          jumpedCheckerIndex
-        } = isSquareReachableViaJump(
-          state.grid,
-          payload.index,
-          state.currentTeam
-        );
-        // If there's a jump to be made... jump
-        if (activeCheckerIndex !== -1 && jumpedCheckerIndex !== -1) {
-          newGrid[activeCheckerIndex] = EMPTY_CELL;
-          newGrid[jumpedCheckerIndex] = EMPTY_CELL;
-          newGrid[payload.index] = state.currentTeam;
-          state.grid = newGrid;
-          state.selectedCheckerIndex = -1;
-          state.possibleMoves = [];
-
-          // did player win
-          if (isGameWon(state.grid, state.currentTeam)) {
-            dispatch({
-              type: GameFlowAction.GAME_WIN,
-              payload: {
-                index: state.currentTeam
-              }
-            });
-            setTimeout(() => {
-              dispatch({
-                type: GameFlowAction.GAME_RESET
-              });
-            }, 2000);
-          }
-
-          // next teams turn
-          else {
-            state.currentTeam = state.currentTeam === 0 ? 1 : 0;
-          }
-        }
+      // Next team's turn
+      else {
+        state.currentTeam = state.currentTeam === 0 ? 1 : 0;
       }
     }
   }
 
   return state;
 }
-
-// function onCheckerSelect (
-//   state: GameState<allGameFlowDispatches>,
-//   action: GameAction<PlayerSelectIndex>,
-//   dispatch: Dispatch<GameAction<allGameFlowDispatches>
-// ) {
-// }
 
 function onPlayerConnect(
   state: GameState<allGameFlowDispatches>,

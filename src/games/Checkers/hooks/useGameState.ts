@@ -190,14 +190,18 @@ function onPlayerMessage(
     state.gameStatus === GameStatus.PLAYING &&
     newGrid[payload.index] === state.currentTeam
   ) {
-    state.selectedCheckerIndex = payload.index;
-    state.possibleMoves = getMovesForIndex(
-      newGrid,
-      payload.index,
-      state.currentTeam
-    );
-    console.log("state.selectedCheckerIndex:: ", state.selectedCheckerIndex);
-    console.log("state.possibleMoves:: ", state.possibleMoves);
+    const m = getMovesForIndex(newGrid, payload.index, state.currentTeam);
+
+    // Highlight selected checker if that checker has moves available
+    if (m.length > 0) {
+      state.selectedCheckerIndex = payload.index;
+      state.possibleMoves = m;
+    }
+    // Else, clear checker/move previews
+    else {
+      state.selectedCheckerIndex = -1;
+      state.possibleMoves = [];
+    }
   }
 
   if (
@@ -211,13 +215,15 @@ function onPlayerMessage(
       payload.index,
       state.currentTeam
     );
-    if (activeCheckerIndex !== -1) {
-      if (activeCheckerIndex !== -1) {
-        newGrid[activeCheckerIndex] = EMPTY_CELL;
-        newGrid[payload.index] = state.currentTeam;
-
-        state.grid = newGrid;
-      }
+    const isCellInPossibleMoves =
+      payload.index &&
+      state.possibleMoves?.findIndex(pm => pm === payload.index) !== -1;
+    if (isCellInPossibleMoves) {
+      newGrid[activeCheckerIndex] = EMPTY_CELL;
+      newGrid[payload.index] = state.currentTeam;
+      state.grid = newGrid;
+      state.selectedCheckerIndex = -1;
+      state.possibleMoves = [];
 
       // did player win
       if (isGameWon(state.grid, state.currentTeam)) {
@@ -253,6 +259,8 @@ function onPlayerMessage(
         newGrid[jumpedCheckerIndex] = EMPTY_CELL;
         newGrid[payload.index] = state.currentTeam;
         state.grid = newGrid;
+        state.selectedCheckerIndex = -1;
+        state.possibleMoves = [];
 
         // did player win
         if (isGameWon(state.grid, state.currentTeam)) {

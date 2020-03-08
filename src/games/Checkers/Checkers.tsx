@@ -13,7 +13,7 @@ import {
   GameState,
   GameAction
 } from "models/Game";
-import { playerSelectIndex } from "games/TicTacToe/hooks/useGameState";
+import { playerSelectIndex } from "games/Checkers/hooks/useGameState";
 import {
   GRID_CELL_WIDTH,
   GRID_COLUMNS,

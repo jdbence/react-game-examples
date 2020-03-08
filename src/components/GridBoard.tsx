@@ -90,8 +90,6 @@ export const GridBoard: FunctionComponent<GridBoardProps> = ({
     />
     {grid.map((cell, i) => {
       const p = indexToPoint(i, gridColumns);
-      const isCellHighlighted =
-        highlightedCells?.findIndex(hc => hc === i) !== -1;
       return (
         <GridBox
           key={i}

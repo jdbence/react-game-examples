@@ -1,7 +1,5 @@
 import React, { FunctionComponent, useMemo } from "react";
 import { motion } from "framer-motion";
-// import RadioButtonUncheckedIcon from "@material-ui/icons/RadioButtonUnchecked";
-// import CloseIcon from "@material-ui/icons/Close";
 import { GridBoxIcons } from "models/Game";
 
 interface GridBoxProps {

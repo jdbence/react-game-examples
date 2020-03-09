@@ -9,4 +9,6 @@ export const TEAM_NAMES = ["Red Team", "Blue Team"];
 export const MAX_TEAMS = 2;
 export const EMPTY_CELL = -1;
 export const TEAM_0 = 0;
+export const TEAM_0_KING = TEAM_0 + 0.5;
 export const TEAM_1 = 1;
+export const TEAM_1_KING = TEAM_1 + 0.5;

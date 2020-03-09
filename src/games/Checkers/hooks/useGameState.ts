@@ -15,6 +15,7 @@ import {
   GRID_ROWS,
   EMPTY_CELL,
   TEAM_0,
+  // TEAM_0_KING,
   TEAM_1,
   MAX_TEAMS
 } from "games/Checkers/constants/GameSettings";
@@ -35,13 +36,13 @@ const placeCheckers = (
   grid: Array<number>,
   index: number,
   count: number,
-  team: number
+  value: number
 ) => {
   let k = 0;
   while (k < count) {
     const p = indexToPoint(index, GRID_COLUMNS);
     if ((p.x + p.y) % 2 === 0) {
-      grid.splice(index, 1, team);
+      grid.splice(index, 1, value);
       k++;
     }
     index++;
@@ -98,12 +99,6 @@ function onPlayerMessage(
   const payload = action && action.payload;
 
   if (payload) {
-    const moves = getMovesForIndex(
-      newGrid,
-      state.selectedCheckerIndex || -1,
-      state.currentTeam
-    );
-
     // Player clicks their own checker
     if (
       state.gameStatus === GameStatus.PLAYING &&
@@ -115,10 +110,12 @@ function onPlayerMessage(
         state.currentTeam
       );
 
+      console.log({ clickedCheckerMoves, payload });
+
       // Highlight selected checker if that checker has moves available
       if (clickedCheckerMoves.length > 0) {
         state.selectedCheckerIndex = payload.index;
-        state.possibleMoves = clickedCheckerMoves.map(m => m.index);
+        state.possibleMoves = clickedCheckerMoves;
       }
       // Else, clear checker/move previews
       else {
@@ -132,13 +129,20 @@ function onPlayerMessage(
       state.gameStatus === GameStatus.PLAYING &&
       newGrid[payload.index] === EMPTY_CELL
     ) {
+      const moves = getMovesForIndex(
+        newGrid,
+        state.selectedCheckerIndex || -1,
+        state.currentTeam
+      );
       const isCellInMoves = isIndexInMoves(payload.index, moves);
 
       // Move the selected checker to the clicked cell
       if (state.selectedCheckerIndex && isCellInMoves) {
         const { isJump, jumpIndex } = isMoveAJump(
           state.selectedCheckerIndex,
-          payload.index
+          payload.index,
+          state.grid,
+          state.currentTeam
         );
         newGrid[state.selectedCheckerIndex] = EMPTY_CELL;
         newGrid[payload.index] = state.currentTeam;
@@ -151,7 +155,7 @@ function onPlayerMessage(
             newGrid,
             payload.index,
             state.currentTeam
-          ).filter(m => m.isJump);
+          );
 
           // Player has no more moves available
           if (newMoves.length === 0) {
@@ -161,7 +165,7 @@ function onPlayerMessage(
           // Update the grid and show updated list of moves
           else {
             state.selectedCheckerIndex = payload.index;
-            state.possibleMoves = newMoves.map(m => m.index);
+            state.possibleMoves = newMoves;
           }
         } else {
           state.grid = newGrid;

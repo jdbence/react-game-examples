@@ -7,6 +7,7 @@ import { red, blue } from "@material-ui/core/colors";
 import { GridBoard } from "components/GridBoard";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import RadioButtonUncheckedIcon from "@material-ui/icons/RadioButtonUnchecked";
+import RadioButtonCheckedIcon from "@material-ui/icons/RadioButtonChecked";
 import {
   GameStatus,
   allGameFlowDispatches,
@@ -17,7 +18,11 @@ import { playerSelectIndex } from "games/Checkers/hooks/useGameState";
 import {
   GRID_CELL_WIDTH,
   GRID_COLUMNS,
-  GRID_WIDTH
+  GRID_WIDTH,
+  TEAM_0,
+  TEAM_0_KING,
+  TEAM_1,
+  TEAM_1_KING
 } from "games/Checkers/constants/GameSettings";
 import { pointToIndex } from "utils/GridUtil";
 
@@ -60,12 +65,20 @@ export const Checkers: FunctionComponent<CheckersProps> = ({
   };
 
   const gridBoxIcons = {
-    0: {
+    [TEAM_0]: {
       icon: RadioButtonUncheckedIcon,
       color: red[500]
     },
-    1: {
+    [TEAM_0_KING]: {
+      icon: RadioButtonCheckedIcon,
+      color: red[500]
+    },
+    [TEAM_1]: {
       icon: RadioButtonUncheckedIcon,
+      color: blue[500]
+    },
+    [TEAM_1_KING]: {
+      icon: RadioButtonCheckedIcon,
       color: blue[500]
     }
   };

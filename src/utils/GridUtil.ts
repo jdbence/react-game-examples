@@ -2,18 +2,12 @@ import {
   GRID_COLUMNS,
   GRID_ROWS,
   EMPTY_CELL,
-  TEAM_0,
   TEAM_1
 } from "games/Checkers/constants/GameSettings";
 
 export interface Point {
   x: number;
   y: number;
-}
-
-enum Direction {
-  up = "up",
-  down = "down"
 }
 
 interface Move {
@@ -28,95 +22,106 @@ export const indexToPoint = (index: number, gridColumns: number): Point => {
   };
 };
 
-export const isIndexInMoves = (index: number, moves: Array<Move>): boolean =>
-  moves.findIndex(m => m.index === index) !== -1;
+export const isIndexInMoves = (index: number, moves: Array<number>): boolean =>
+  moves.findIndex(m => m === index) !== -1;
 
 export const pointToIndex = (p: Point, gridColumns: number): number => {
   return p.y * gridColumns + p.x;
 };
 
-const isYCoordinateOutOfBounds = (yCoordinate: number, team: number) =>
-  team === TEAM_0 ? yCoordinate >= GRID_ROWS : yCoordinate < 0;
+const isPointOutOfBounds = (p: Point) =>
+  p.x < 0 || p.x >= GRID_COLUMNS || p.y >= GRID_ROWS || p.y < 0;
 
+// TODO Move this to Checkers specific util
 export const getMovesForIndex = (
   grid: Array<number>,
   index: number,
-  team: number
-) => {
-  const moves: Array<Move> = [];
-
-  if (index >= 0) {
-    const p0 = indexToPoint(index, GRID_COLUMNS);
-    const xOffset = 1;
-    const yOffset = team === TEAM_1 ? -1 : 1;
-
-    const leftMove: Point = { x: p0.x - xOffset, y: p0.y + yOffset };
-    const leftMoveIndex = pointToIndex(leftMove, GRID_COLUMNS);
-    const rightMove: Point = { x: p0.x + xOffset, y: p0.y + yOffset };
-    const rightMoveIndex = pointToIndex(rightMove, GRID_COLUMNS);
-
-    if (
-      leftMove.x >= 0 &&
-      !isYCoordinateOutOfBounds(leftMove.y, team) &&
-      grid[leftMoveIndex] === EMPTY_CELL
-    ) {
-      const isJump = isMoveAJump(leftMoveIndex, index).isJump;
-      moves.push({ index: leftMoveIndex, isJump });
-    } else if (
-      grid[leftMoveIndex] !== EMPTY_CELL &&
-      grid[leftMoveIndex] !== team
-    ) {
-      const leftJumpMove: Point = {
-        x: leftMove.x - xOffset,
-        y: leftMove.y + yOffset
-      };
-      const leftJumpMoveIndex = pointToIndex(leftJumpMove, GRID_COLUMNS);
+  value: number
+): Array<number> => {
+  const point = indexToPoint(index, GRID_COLUMNS);
+  const team = Math.floor(value);
+  const xOffset = 1;
+  const yOffset = value >= TEAM_1 ? -1 : 1;
+  const isKing = value % 1 !== 0;
+  const basicMoves: Array<Point> = [
+    { x: point.x - xOffset, y: point.y + yOffset },
+    { x: point.x + xOffset, y: point.y + yOffset }
+  ];
+  const kingMoves: Array<Point> = isKing
+    ? [
+        { x: point.x - xOffset, y: point.y - yOffset },
+        { x: point.x + xOffset, y: point.y - yOffset }
+      ]
+    : [];
+  const leftJump = { x: point.x - xOffset * 2, y: point.y + yOffset * 2 };
+  const rightJump = { x: point.x + xOffset * 2, y: point.y + yOffset * 2 };
+  const backLeftJump = {
+    x: point.x - xOffset * 2,
+    y: point.y - yOffset * 2
+  };
+  const backRightJump = {
+    x: point.x + xOffset * 2,
+    y: point.y - yOffset * 2
+  };
+  const jumps = isKing
+    ? [leftJump, rightJump, backLeftJump, backRightJump]
+    : [leftJump, rightJump];
+  const filteredJumps: Array<Point> = jumps.reduce(
+    (km: Array<Point>, cm: Point) => {
       if (
-        leftJumpMove.x >= 0 &&
-        !isYCoordinateOutOfBounds(leftJumpMove.y, team) &&
-        grid[leftJumpMoveIndex] === EMPTY_CELL
+        isMoveAJump(index, pointToIndex(cm, GRID_COLUMNS), grid, team).isJump
       ) {
-        const isJump = isMoveAJump(leftJumpMoveIndex, index).isJump;
-        moves.push({ index: leftJumpMoveIndex, isJump });
+        return km.concat(cm);
       }
-    }
-
-    if (
-      rightMove.x < GRID_COLUMNS &&
-      !isYCoordinateOutOfBounds(rightMove.y, team) &&
-      grid[rightMoveIndex] === EMPTY_CELL
-    ) {
-      const isJump = isMoveAJump(rightMoveIndex, index).isJump;
-      moves.push({ index: rightMoveIndex, isJump });
-    } else if (
-      grid[rightMoveIndex] !== EMPTY_CELL &&
-      grid[rightMoveIndex] !== team
-    ) {
-      const rightJumpMove: Point = {
-        x: rightMove.x + xOffset,
-        y: rightMove.y + yOffset
-      };
-      const rightJumpMoveIndex = pointToIndex(rightJumpMove, GRID_COLUMNS);
-      if (
-        rightJumpMove.x < GRID_COLUMNS &&
-        !isYCoordinateOutOfBounds(rightJumpMove.y, team) &&
-        grid[rightJumpMoveIndex] === EMPTY_CELL
-      ) {
-        const isJump = isMoveAJump(rightJumpMoveIndex, index).isJump;
-        moves.push({ index: rightJumpMoveIndex, isJump });
+      return km;
+    },
+    []
+  );
+  return [...basicMoves, ...kingMoves, ...filteredJumps].reduce(
+    (m: Array<number>, p: Point) => {
+      const i = pointToIndex(p, GRID_COLUMNS);
+      if (!isPointOutOfBounds(p)) {
+        // Cell is empty. Move is good.
+        if (grid[i] === EMPTY_CELL) {
+          m.push(i);
+          return m;
+        }
       }
-    }
-  }
-
-  return moves;
+      return m;
+    },
+    []
+  );
 };
 
-export const isMoveAJump = (ia: number, ib: number) => {
+/**
+ *
+ * @param ia Starting index
+ * @param ib Destination index
+ * @param grid Board state
+ * @param team Should be whole numbers representing the current team's plain and kinged checkers
+ */
+export const isMoveAJump = (
+  ia: number,
+  ib: number,
+  grid: Array<number>,
+  team: number
+) => {
   const pa = indexToPoint(ia, GRID_COLUMNS);
   const pb = indexToPoint(ib, GRID_COLUMNS);
   const pz = { x: (pa.x + pb.x) / 2, y: (pa.y + pb.y) / 2 };
+  const jumpIndex = pointToIndex(pz, GRID_COLUMNS);
+  const isDistanceAJump = Math.abs(pa.x - pb.x) === 2;
+  const isJumpedIndexEnemyCell =
+    grid[jumpIndex] !== EMPTY_CELL && grid[jumpIndex] !== team;
+  console.log(
+    "!@#$%^&   pa, pb, isJumpedEnemyCell, team",
+    pa,
+    pb,
+    isJumpedIndexEnemyCell,
+    team
+  );
   return {
-    isJump: Math.abs(pa.x - pb.x) === 2,
-    jumpIndex: pointToIndex(pz, GRID_COLUMNS)
+    isJump: isDistanceAJump && isJumpedIndexEnemyCell,
+    jumpIndex
   };
 };

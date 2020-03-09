@@ -4,15 +4,11 @@ import {
   EMPTY_CELL,
   TEAM_1
 } from "games/Checkers/constants/GameSettings";
+import { Move } from "games/Checkers/models/Game";
 
 export interface Point {
   x: number;
   y: number;
-}
-
-interface Move {
-  index: number;
-  isJump: boolean;
 }
 
 export const indexToPoint = (index: number, gridColumns: number): Point => {
@@ -37,7 +33,7 @@ export const getMovesForIndex = (
   grid: Array<number>,
   index: number,
   value: number
-): Array<number> => {
+): Array<Move> => {
   const point = indexToPoint(index, GRID_COLUMNS);
   const team = Math.floor(value);
   const xOffset = 1;
@@ -78,12 +74,13 @@ export const getMovesForIndex = (
     []
   );
   return [...basicMoves, ...kingMoves, ...filteredJumps].reduce(
-    (m: Array<number>, p: Point) => {
+    (m: Array<Move>, p: Point) => {
       const i = pointToIndex(p, GRID_COLUMNS);
       if (!isPointOutOfBounds(p)) {
         // Cell is empty. Move is good.
         if (grid[i] === EMPTY_CELL) {
-          m.push(i);
+          const { isJump, jumpedCellIndex } = isMoveAJump(index, i, grid, team);
+          m.push({ index: i, isJump, jumpedCellIndex });
           return m;
         }
       }
@@ -109,19 +106,13 @@ export const isMoveAJump = (
   const pa = indexToPoint(ia, GRID_COLUMNS);
   const pb = indexToPoint(ib, GRID_COLUMNS);
   const pz = { x: (pa.x + pb.x) / 2, y: (pa.y + pb.y) / 2 };
-  const jumpIndex = pointToIndex(pz, GRID_COLUMNS);
+  const jumpedCellIndex = pointToIndex(pz, GRID_COLUMNS);
   const isDistanceAJump = Math.abs(pa.x - pb.x) === 2;
   const isJumpedIndexEnemyCell =
-    grid[jumpIndex] !== EMPTY_CELL && grid[jumpIndex] !== team;
-  console.log(
-    "!@#$%^&   pa, pb, isJumpedEnemyCell, team",
-    pa,
-    pb,
-    isJumpedIndexEnemyCell,
-    team
-  );
+    grid[jumpedCellIndex] !== EMPTY_CELL && grid[jumpedCellIndex] !== team;
+
   return {
     isJump: isDistanceAJump && isJumpedIndexEnemyCell,
-    jumpIndex
+    jumpedCellIndex
   };
 };

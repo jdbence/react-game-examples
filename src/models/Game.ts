@@ -1,4 +1,5 @@
 import { SvgIconProps } from "@material-ui/core";
+import { Move } from "games/Checkers/models/Game";
 
 export enum GameStatus {
   WIN = "WIN",
@@ -20,7 +21,7 @@ export interface GameState<T> {
   gameStatus: GameStatus;
   grid: Array<number>;
   selectedCheckerIndex?: number;
-  possibleMoves?: Array<number>;
+  possibleMoves?: Array<Move>;
 }
 
 export interface GameAction<T> {

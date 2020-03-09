@@ -53,7 +53,7 @@ export const Checkers: FunctionComponent<CheckersProps> = ({
   const classes = useStyles();
 
   const highlightedCells = [
-    ...(state.possibleMoves || []),
+    ...(state.possibleMoves?.map(pm => pm.index) || []),
     state.selectedCheckerIndex || -1
   ];
 

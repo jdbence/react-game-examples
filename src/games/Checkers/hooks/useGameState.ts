@@ -110,8 +110,6 @@ function onPlayerMessage(
         state.currentTeam
       );
 
-      console.log({ clickedCheckerMoves, payload });
-
       // Highlight selected checker if that checker has moves available
       if (clickedCheckerMoves.length > 0) {
         state.selectedCheckerIndex = payload.index;
@@ -134,11 +132,14 @@ function onPlayerMessage(
         state.selectedCheckerIndex || -1,
         state.currentTeam
       );
-      const isCellInMoves = isIndexInMoves(payload.index, moves);
+      const isCellInMoves = isIndexInMoves(
+        payload.index,
+        moves.map(m => m.index)
+      );
 
       // Move the selected checker to the clicked cell
       if (state.selectedCheckerIndex && isCellInMoves) {
-        const { isJump, jumpIndex } = isMoveAJump(
+        const { isJump, jumpedCellIndex } = isMoveAJump(
           state.selectedCheckerIndex,
           payload.index,
           state.grid,
@@ -148,14 +149,14 @@ function onPlayerMessage(
         newGrid[payload.index] = state.currentTeam;
 
         if (isJump) {
-          newGrid[jumpIndex] = EMPTY_CELL;
+          newGrid[jumpedCellIndex] = EMPTY_CELL;
           state.grid = newGrid;
 
           const newMoves = getMovesForIndex(
             newGrid,
             payload.index,
             state.currentTeam
-          );
+          ).filter(m => m.isJump);
 
           // Player has no more moves available
           if (newMoves.length === 0) {

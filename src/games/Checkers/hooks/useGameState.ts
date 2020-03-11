@@ -102,12 +102,13 @@ function onPlayerMessage(
     // Player clicks their own checker
     if (
       state.gameStatus === GameStatus.PLAYING &&
-      newGrid[payload.index] === state.currentTeam
+      Math.floor(newGrid[payload.index]) === state.currentTeam
     ) {
+      console.log("A");
       const clickedCheckerMoves = getMovesForIndex(
         newGrid,
         payload.index,
-        state.currentTeam
+        newGrid[payload.index]
       );
 
       // Highlight selected checker if that checker has moves available
@@ -130,23 +131,25 @@ function onPlayerMessage(
       const moves = getMovesForIndex(
         newGrid,
         state.selectedCheckerIndex || -1,
-        state.currentTeam
+        newGrid[state.selectedCheckerIndex || -1]
       );
-      const isCellInMoves = isIndexInMoves(
-        payload.index,
-        moves.map(m => m.index)
-      );
+      const cellInMoves = moves.find(m => m.index === payload.index);
 
       // Move the selected checker to the clicked cell
-      if (state.selectedCheckerIndex && isCellInMoves) {
-        const { isJump, jumpedCellIndex } = isMoveAJump(
-          state.selectedCheckerIndex,
-          payload.index,
-          state.grid,
-          state.currentTeam
-        );
+      if (state.selectedCheckerIndex && cellInMoves !== undefined) {
+        const { isJump, jumpedCellIndex } = cellInMoves;
+
+        const py = indexToPoint(payload.index, GRID_COLUMNS).y;
+
+        // King the checker, if it has reached the y-edge of the board
+        // TODO Check 0 vs GRID_ROWS based on whether currentTeam is TEAM_0 or TEAM_1, perhaps
+        if (py === 0 || py === GRID_ROWS - 1) {
+          newGrid[payload.index] = state.currentTeam + 0.5;
+        } else {
+          newGrid[payload.index] = newGrid[state.selectedCheckerIndex || -1];
+        }
+
         newGrid[state.selectedCheckerIndex] = EMPTY_CELL;
-        newGrid[payload.index] = state.currentTeam;
 
         if (isJump) {
           newGrid[jumpedCellIndex] = EMPTY_CELL;

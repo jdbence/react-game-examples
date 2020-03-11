@@ -54,7 +54,7 @@ export const Checkers: FunctionComponent<CheckersProps> = ({
 
   const highlightedCells = [
     ...(state.possibleMoves?.map(pm => pm.index) || []),
-    state.selectedCheckerIndex || -1
+    state.selectedCheckerIndex !== undefined ? state.selectedCheckerIndex : -1
   ];
 
   const handleBoxClick = (e: React.MouseEvent) => {

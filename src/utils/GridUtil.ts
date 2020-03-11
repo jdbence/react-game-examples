@@ -39,7 +39,6 @@ export const getMovesForIndex = (
   const xOffset = 1;
   const yOffset = value >= TEAM_1 ? -1 : 1;
   const isKing = value % 1 !== 0;
-  console.log({ value, isKing });
   const basicMoves: Array<Point> = [
     { x: point.x - xOffset, y: point.y + yOffset },
     { x: point.x + xOffset, y: point.y + yOffset }

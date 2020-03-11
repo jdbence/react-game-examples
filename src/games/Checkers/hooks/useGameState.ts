@@ -15,16 +15,10 @@ import {
   GRID_ROWS,
   EMPTY_CELL,
   TEAM_0,
-  // TEAM_0_KING,
   TEAM_1,
   MAX_TEAMS
 } from "games/Checkers/constants/GameSettings";
-import {
-  indexToPoint,
-  isIndexInMoves,
-  isMoveAJump,
-  getMovesForIndex
-} from "utils/GridUtil";
+import { indexToPoint, getMovesForIndex } from "utils/GridUtil";
 
 /**
  * @param grid Grid to add to
@@ -104,7 +98,6 @@ function onPlayerMessage(
       state.gameStatus === GameStatus.PLAYING &&
       Math.floor(newGrid[payload.index]) === state.currentTeam
     ) {
-      console.log("A");
       const clickedCheckerMoves = getMovesForIndex(
         newGrid,
         payload.index,
@@ -128,15 +121,21 @@ function onPlayerMessage(
       state.gameStatus === GameStatus.PLAYING &&
       newGrid[payload.index] === EMPTY_CELL
     ) {
+      const selectedCheckerIndex =
+        state.selectedCheckerIndex !== undefined
+          ? state.selectedCheckerIndex
+          : -1;
       const moves = getMovesForIndex(
         newGrid,
-        state.selectedCheckerIndex || -1,
-        newGrid[state.selectedCheckerIndex || -1]
+        selectedCheckerIndex,
+        newGrid[selectedCheckerIndex]
       );
       const cellInMoves = moves.find(m => m.index === payload.index);
-
       // Move the selected checker to the clicked cell
-      if (state.selectedCheckerIndex && cellInMoves !== undefined) {
+      if (
+        state.selectedCheckerIndex !== undefined &&
+        cellInMoves !== undefined
+      ) {
         const { isJump, jumpedCellIndex } = cellInMoves;
 
         const py = indexToPoint(payload.index, GRID_COLUMNS).y;
@@ -146,7 +145,7 @@ function onPlayerMessage(
         if (py === 0 || py === GRID_ROWS - 1) {
           newGrid[payload.index] = state.currentTeam + 0.5;
         } else {
-          newGrid[payload.index] = newGrid[state.selectedCheckerIndex || -1];
+          newGrid[payload.index] = newGrid[selectedCheckerIndex];
         }
 
         newGrid[state.selectedCheckerIndex] = EMPTY_CELL;
@@ -179,7 +178,6 @@ function onPlayerMessage(
       }
     }
   }
-
   return state;
 }
 

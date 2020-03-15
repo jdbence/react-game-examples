@@ -5,6 +5,8 @@ import TagFacesIcon from "@material-ui/icons/TagFaces";
 import Typography from "@material-ui/core/Typography";
 import { red, blue } from "@material-ui/core/colors";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
+import RadioButtonUncheckedIcon from "@material-ui/icons/RadioButtonUnchecked";
+import CloseIcon from "@material-ui/icons/Close";
 import { GridBoard } from "components/GridBoard";
 import { pointToIndex } from "utils/GridUtil";
 import {
@@ -45,6 +47,17 @@ export const TicTacToe: FunctionComponent<TicTacToeProps> = ({
   state
 }) => {
   const classes = useStyles();
+
+  const gridBoxIcons = {
+    0: {
+      icon: RadioButtonUncheckedIcon,
+      color: red[500]
+    },
+    1: {
+      icon: CloseIcon,
+      color: blue[500]
+    }
+  };
 
   const handleBoxClick = (e: React.MouseEvent) => {
     e.persist();
@@ -97,6 +110,7 @@ export const TicTacToe: FunctionComponent<TicTacToeProps> = ({
           grid={state.grid}
           gridCellWidth={GRID_CELL_WIDTH}
           gridColumns={GRID_COLUMNS}
+          gridBoxIcons={gridBoxIcons}
           width={GRID_WIDTH}
           height={GRID_WIDTH}
           onClick={handleBoxClick}

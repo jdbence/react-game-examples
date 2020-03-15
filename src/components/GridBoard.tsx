@@ -2,6 +2,11 @@ import React, { FunctionComponent } from "react";
 import { GridBox } from "components/GridBox";
 import { Box } from "components/Box";
 import { indexToPoint } from "utils/GridUtil";
+import { GridBoxIcons } from "models/Game";
+import {
+  GRID_COLUMNS,
+  GRID_CELL_WIDTH
+} from "games/Checkers/constants/GameSettings";
 
 interface GridBoardProps {
   width: number;
@@ -10,18 +15,23 @@ interface GridBoardProps {
   grid: Array<number>;
   gridColumns: number;
   gridCellWidth: number;
+  gridBoxIcons: GridBoxIcons;
+  highlightedCells?: Array<number>;
   onClick?: (e: any) => void;
 }
 
 const CheckerdBoard = ({
   width,
   height,
-  fill
+  fill,
+  highlightedCells
 }: {
   fill: string;
   width: number;
   height: number;
+  highlightedCells: Array<number>;
 }) => {
+  const highlightFill = "lemonchiffon";
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
       <pattern
@@ -42,6 +52,20 @@ const CheckerdBoard = ({
         height="100%"
         fill="url(#pattern-checkers)"
       />
+      {highlightedCells.map(hc => {
+        const p = indexToPoint(hc, GRID_COLUMNS);
+        return (
+          <rect
+            key={`hc-${p.x}-${p.y}`}
+            fill={highlightFill}
+            x={p.x * GRID_CELL_WIDTH}
+            width={GRID_CELL_WIDTH}
+            height={GRID_CELL_WIDTH}
+            y={p.y * GRID_CELL_WIDTH}
+            opacity={0.65}
+          />
+        );
+      })}
     </svg>
   );
 };
@@ -53,10 +77,17 @@ export const GridBoard: FunctionComponent<GridBoardProps> = ({
   grid,
   gridCellWidth,
   gridColumns,
+  gridBoxIcons,
+  highlightedCells = [],
   onClick
 }) => (
   <div style={{ width: width, height: height, position: "relative" }}>
-    <CheckerdBoard fill={fill} width={width} height={height} />
+    <CheckerdBoard
+      fill={fill}
+      width={width}
+      height={height}
+      highlightedCells={highlightedCells}
+    />
     {grid.map((cell, i) => {
       const p = indexToPoint(i, gridColumns);
       return (
@@ -66,6 +97,7 @@ export const GridBoard: FunctionComponent<GridBoardProps> = ({
           y={p.y}
           team={cell}
           gridCellWidth={gridCellWidth}
+          gridBoxIcons={gridBoxIcons}
         />
       );
     })}

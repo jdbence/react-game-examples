@@ -9,16 +9,62 @@ import {
   PlayerSelectIndex,
   allGameFlowDispatches
 } from "models/Game";
-import { TEAM_NAMES } from "games/Checkers/constants/GameSettings";
+import {
+  TEAM_NAMES,
+  GRID_COLUMNS,
+  GRID_ROWS,
+  EMPTY_CELL,
+  TEAM_0,
+  TEAM_1,
+  MAX_TEAMS
+} from "games/Checkers/constants/GameSettings";
+import { indexToPoint, getMovesForIndex } from "utils/GridUtil";
 
-const EMPTY_CELL = -1;
-const MAX_TEAMS = 2;
+/**
+ * @param grid Grid to add to
+ * @param index Starting index: where to begin adding checkers
+ * @param count How many checkers to add
+ * @param team Which team owns the checkers
+ */
+const placeCheckers = (
+  grid: Array<number>,
+  index: number,
+  count: number,
+  value: number
+) => {
+  let k = 0;
+  while (k < count) {
+    const p = indexToPoint(index, GRID_COLUMNS);
+    if ((p.x + p.y) % 2 === 0) {
+      grid.splice(index, 1, value);
+      k++;
+    }
+    index++;
+  }
+};
+
+/**
+ * 64 squares on a checkerboard
+ * Rows are set up with one player's pieces spanning 3 rows, then 2 empty rows, then 3 for the second player
+ */
+const genStartingGrid = () => {
+  const CELL_COUNT = GRID_COLUMNS * GRID_ROWS;
+  const g = new Array(CELL_COUNT).fill(-1);
+
+  const CHECKER_COUNT = 12;
+  placeCheckers(g, 0, CHECKER_COUNT, TEAM_0);
+  placeCheckers(g, CELL_COUNT - CHECKER_COUNT * 2, CHECKER_COUNT, TEAM_1);
+
+  return g;
+};
 
 const resetState = {
   currentTeam: 0,
   gameActions: [],
   gameStatus: GameStatus.PLAYING,
-  grid: new Array(64).fill(EMPTY_CELL) // 64 squares on a checkerboard
+  grid: genStartingGrid(),
+  possibleMoves: [],
+  selectedCheckerIndex: -1
 };
 
 const initialState = {
@@ -27,26 +73,15 @@ const initialState = {
   teams: []
 };
 
+/**
+ * Game is won if other team has no more pieces
+ * @param grid Game board state
+ * @param team Current team
+ */
 const isGameWon = (grid: Array<number>, team: number): boolean => {
   const g = grid;
-  // top
-  return (
-    (team === g[0] && team === g[1] && team === g[2]) ||
-    // middle
-    (team === g[3] && team === g[4] && team === g[5]) ||
-    // bottom
-    (team === g[6] && team === g[7] && team === g[8]) ||
-    // left
-    (team === g[0] && team === g[3] && team === g[6]) ||
-    // right
-    (team === g[2] && team === g[5] && team === g[8]) ||
-    // diagonal right
-    (team === g[2] && team === g[4] && team === g[6]) ||
-    // diagonal center
-    (team === g[1] && team === g[4] && team === g[7]) ||
-    // diagonal left
-    (team === g[0] && team === g[4] && team === g[8])
-  );
+  const otherTeam: number = team === TEAM_0 ? TEAM_1 : TEAM_0;
+  return g.findIndex(cell => cell === otherTeam) === -1;
 };
 
 function onPlayerMessage(
@@ -57,44 +92,119 @@ function onPlayerMessage(
   const newGrid = [...state.grid];
   const payload = action && action.payload;
 
-  if (payload && state.gameStatus === GameStatus.PLAYING) {
-    // cell hasn't been filled
-    if (newGrid[payload.index] === EMPTY_CELL) {
-      newGrid[payload.index] = state.currentTeam;
-      state.grid = newGrid;
+  if (payload) {
+    // Player clicks their own checker
+    if (
+      state.gameStatus === GameStatus.PLAYING &&
+      Math.floor(newGrid[payload.index]) === state.currentTeam
+    ) {
+      const clickedCheckerMoves = getMovesForIndex(
+        newGrid,
+        payload.index,
+        newGrid[payload.index]
+      );
 
-      // did player win
-      if (isGameWon(state.grid, state.currentTeam)) {
-        dispatch({
-          type: GameFlowAction.GAME_WIN,
-          payload: {
-            index: state.currentTeam
-          }
-        });
-        setTimeout(() => {
-          dispatch({
-            type: GameFlowAction.GAME_RESET
-          });
-        }, 2000);
+      // Highlight selected checker if that checker has moves available
+      if (clickedCheckerMoves.length > 0) {
+        state.selectedCheckerIndex = payload.index;
+        state.possibleMoves = clickedCheckerMoves;
       }
-      // is game tied
-      else if (state.grid.filter(v => v === EMPTY_CELL).length === 0) {
-        dispatch({
-          type: GameFlowAction.GAME_TIE
-        });
-        setTimeout(() => {
-          dispatch({
-            type: GameFlowAction.GAME_RESET
-          });
-        }, 2000);
-      }
-      // next teams turn
+      // Else, clear checker/move previews
       else {
-        state.currentTeam = state.currentTeam === 0 ? 1 : 0;
+        state.selectedCheckerIndex = -1;
+        state.possibleMoves = [];
+      }
+    }
+    //
+    // Player clicked an empty cell
+    else if (
+      state.gameStatus === GameStatus.PLAYING &&
+      newGrid[payload.index] === EMPTY_CELL
+    ) {
+      const selectedCheckerIndex =
+        state.selectedCheckerIndex !== undefined
+          ? state.selectedCheckerIndex
+          : -1;
+      const moves = getMovesForIndex(
+        newGrid,
+        selectedCheckerIndex,
+        newGrid[selectedCheckerIndex]
+      );
+      const cellInMoves = moves.find(m => m.index === payload.index);
+      // Move the selected checker to the clicked cell
+      if (
+        state.selectedCheckerIndex !== undefined &&
+        cellInMoves !== undefined
+      ) {
+        const { isJump, jumpedCellIndex } = cellInMoves;
+
+        const py = indexToPoint(payload.index, GRID_COLUMNS).y;
+
+        // King the checker, if it has reached the y-edge of the board
+        // TODO Check 0 vs GRID_ROWS based on whether currentTeam is TEAM_0 or TEAM_1, perhaps
+        if (py === 0 || py === GRID_ROWS - 1) {
+          newGrid[payload.index] = state.currentTeam + 0.5;
+        } else {
+          newGrid[payload.index] = newGrid[selectedCheckerIndex];
+        }
+
+        newGrid[state.selectedCheckerIndex] = EMPTY_CELL;
+
+        if (isJump) {
+          newGrid[jumpedCellIndex] = EMPTY_CELL;
+          state.grid = newGrid;
+
+          const newMoves = getMovesForIndex(
+            newGrid,
+            payload.index,
+            state.currentTeam
+          ).filter(m => m.isJump);
+
+          // Player has no more moves available
+          if (newMoves.length === 0) {
+            onTurnEnd(state, action, dispatch);
+          }
+          // Player has more moves to make
+          // Update the grid and show updated list of moves
+          else {
+            state.selectedCheckerIndex = payload.index;
+            state.possibleMoves = newMoves;
+          }
+        } else {
+          state.grid = newGrid;
+          // Did player win
+          onTurnEnd(state, action, dispatch);
+        }
       }
     }
   }
   return state;
+}
+
+function onTurnEnd(
+  state: GameState<allGameFlowDispatches>,
+  action: GameAction<PlayerSelectIndex>,
+  dispatch: Dispatch<GameAction<allGameFlowDispatches>>
+) {
+  if (isGameWon(state.grid, state.currentTeam)) {
+    dispatch({
+      type: GameFlowAction.GAME_WIN,
+      payload: {
+        index: state.currentTeam
+      }
+    });
+    setTimeout(() => {
+      dispatch({
+        type: GameFlowAction.GAME_RESET
+      });
+    }, 2000);
+  }
+  // Next team's turn
+  else {
+    dispatch({
+      type: GameFlowAction.GAME_TURN_CHANGE
+    });
+  }
 }
 
 function onPlayerConnect(
@@ -147,6 +257,15 @@ function onGameWin(
   return state;
 }
 
+function onGameTurnChange(
+  state: GameState<allGameFlowDispatches>
+): GameState<allGameFlowDispatches> {
+  state.selectedCheckerIndex = -1;
+  state.possibleMoves = [];
+  state.currentTeam = state.currentTeam === 0 ? 1 : 0;
+  return state;
+}
+
 function onGameTie(
   state: GameState<allGameFlowDispatches>
 ): GameState<allGameFlowDispatches> {
@@ -163,6 +282,8 @@ function reducer(
   switch (action.type) {
     case GameFlowAction.GAME_START:
       return { ...nextState, gameStatus: GameStatus.PLAYING };
+    case GameFlowAction.GAME_TURN_CHANGE:
+      return onGameTurnChange(nextState);
     case GameFlowAction.GAME_END:
       return { ...nextState };
     case GameFlowAction.GAME_RESET:

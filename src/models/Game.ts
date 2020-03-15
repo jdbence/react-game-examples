@@ -1,3 +1,6 @@
+import { SvgIconProps } from "@material-ui/core";
+import { Move } from "games/Checkers/models/Game";
+
 export enum GameStatus {
   WIN = "WIN",
   TIE = "TIE",
@@ -17,6 +20,8 @@ export interface GameState<T> {
   gameActions: Array<GameAction<T>>;
   gameStatus: GameStatus;
   grid: Array<number>;
+  selectedCheckerIndex?: number;
+  possibleMoves?: Array<Move>;
 }
 
 export interface GameAction<T> {
@@ -49,3 +54,10 @@ export interface GameWin {
 }
 
 export type allGameFlowDispatches = PlayerSelectIndex | PlayerConnect | GameWin;
+
+export type GridBoxIcons = {
+  [team: number]: {
+    icon: (props: SvgIconProps) => JSX.Element;
+    color: string;
+  };
+};
